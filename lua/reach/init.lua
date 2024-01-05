@@ -28,6 +28,50 @@ function module.setup(cfg)
   cache.setup()
 end
 
+function module.harpoon(options)
+  options = buffers.options.extend(options)
+  local make_harpoons = require('reach.harpoon.make_buffers')
+
+  local bufs = make_harpoons(options)
+
+  local entries = vim.tbl_map(function(buffer)
+    return Entry:new({
+      component = buffers.component,
+      data = buffer,
+    })
+  end, bufs)
+
+  local picker = Picker:new(entries)
+
+  local max_handle_length = 0
+  local marker_present = false
+
+  for _, buffer in pairs(bufs) do
+    if #buffer.handle > max_handle_length then
+      max_handle_length = #buffer.handle
+    end
+
+    if buffer.previous_marker then
+      marker_present = true
+    end
+  end
+
+  picker:set_ctx({
+    options = options,
+    marker_present = marker_present,
+    max_handle_length = max_handle_length,
+  })
+
+  local machine = Machine:new(buffers.machine)
+
+  machine.ctx = {
+    picker = picker,
+    options = options,
+  }
+
+  machine:init()
+end
+
 function module.buffers(options)
   options = buffers.options.extend(options)
 
