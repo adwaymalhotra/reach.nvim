@@ -1,4 +1,4 @@
-local Buffer = require('reach.harpoon.buffer')
+local Harpoon = require('reach.harpoon.harpoon')
 local handles = require('reach.harpoon.handles')
 local u = require('reach.harpoon.util')
 local util = require('reach.util')
@@ -45,11 +45,7 @@ return function(options)
   end)
 
   for _, info in pairs(infos) do
-    -- if options.filter and not options.filter(info.bufnr) then
-    --   goto continue
-    -- end
-
-    local buffer = Buffer:new(info)
+    local buffer = Harpoon:new(info)
 
     local force = util.any(function(v)
       return v == buffer.buftype or v == buffer.filetype

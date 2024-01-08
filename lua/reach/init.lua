@@ -31,7 +31,7 @@ end
 function module.harpoon(options)
   vim.print('reaching harpoons')
   local harpoon = require('reach.harpoon')
-  local make_harpoons = require('reach.harpoon.make_buffers')
+  local make_harpoons = require('reach.harpoon.make_harpoons')
 
   options = harpoon.options.extend(options)
 

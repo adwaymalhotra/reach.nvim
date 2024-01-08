@@ -1,8 +1,8 @@
 local icons = require('reach.icons')
 
-local Buffer = {}
+local Harpoon = {}
 
-function Buffer:new(info)
+function Harpoon:new(info)
   local o = {}
   local bo = vim.bo[info.bufnr]
 
@@ -29,8 +29,8 @@ function Buffer:new(info)
   return setmetatable(o, self)
 end
 
-function Buffer:set()
+function Harpoon:set()
   vim.api.nvim_command('edit ' .. self.name)
 end
 
-return Buffer
+return Harpoon
