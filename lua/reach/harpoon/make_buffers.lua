@@ -41,7 +41,7 @@ return function(options)
   local infos = {}
   foreach(harpoons, function(t,k,v)
     local name = v.value
-    table.insert(infos, { bufnr = 0, name = name, changed = false, lastused = 1})
+    table.insert(infos, { bufnr = 0, name = name, changed = false, lastused = 0})
   end)
 
   for _, info in pairs(infos) do

@@ -4,7 +4,7 @@ local helpers = require('reach.helpers')
 local read = require('reach.harpoon.read')
 local sort = require('reach.harpoon.sort')
 local util = require('reach.util')
-local buffer_util = require('reach.harpoon.util')
+local harpoon_util = require('reach.harpoon.util')
 
 local auto_handles = require('reach.harpoon.constant').auto_handles
 
@@ -157,6 +157,7 @@ module.machine = {
       hooks = {
         on_enter = function(self)
           local picker = self.ctx.picker
+          vim.print('state switching')
 
           local match = read_one(picker.entries, {
             input = self.ctx.state.input,
@@ -174,7 +175,8 @@ module.machine = {
           })
 
           if match then
-            buffer_util.switch_buf(match.data)
+            vim.print('match!')
+            harpoon_util.open(match.data)
           end
 
           self:transition('CLOSED')
@@ -219,7 +221,7 @@ module.machine = {
 
             if unsaved then
               notify('Save your changes first\n', vim.log.levels.ERROR, true)
-              buffer_util.switch_buf(unsaved)
+              harpoon_util.open(unsaved)
             else
               return self:transition('OPEN')
             end
@@ -301,7 +303,7 @@ module.machine = {
               return self.ctx.state.input == util.replace_termcodes(value)
             end, self.ctx.options.actions)
 
-            buffer_util.split_buf(match.data, action_to_command[action])
+            harpoon_util.split_buf(match.data, action_to_command[action])
           end
 
           self:transition('CLOSED')

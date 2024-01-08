@@ -6,12 +6,13 @@ function module.deduped_path(buffer)
   return table.concat(buffer.split_path, '/', #buffer.split_path - buffer.deduped)
 end
 
-function module.switch_buf(buffer)
-  local status = pcall(vim.api.nvim_command, f('buffer %s', buffer.bufnr))
+function module.open(buffer)
+  -- local status = pcall(vim.api.nvim_command, f('buffer %s', buffer.bufnr))
 
-  if not status then
-    vim.api.nvim_command(f('view %s', buffer.name))
-  end
+  -- if not status then
+  vim.notify('opening harpoon ' .. buffer.name)
+  vim.api.nvim_command(f('edit %s', buffer.name))
+  -- end
 end
 
 function module.split_buf(buffer, command)

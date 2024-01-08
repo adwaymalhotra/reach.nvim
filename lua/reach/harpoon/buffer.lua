@@ -29,4 +29,8 @@ function Buffer:new(info)
   return setmetatable(o, self)
 end
 
+function Buffer:set()
+  vim.api.nvim_command('edit ' .. self.name)
+end
+
 return Buffer

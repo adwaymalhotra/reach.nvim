@@ -29,14 +29,16 @@ function module.setup(cfg)
 end
 
 function module.harpoon(options)
-  options = buffers.options.extend(options)
+  vim.print('reaching harpoons')
+  local harpoon = require('reach.harpoon')
   local make_harpoons = require('reach.harpoon.make_buffers')
 
-  local bufs = make_harpoons(options)
+  options = harpoon.options.extend(options)
 
+  local bufs = make_harpoons(options)
   local entries = vim.tbl_map(function(buffer)
     return Entry:new({
-      component = buffers.component,
+      component = harpoon.component,
       data = buffer,
     })
   end, bufs)
@@ -62,7 +64,7 @@ function module.harpoon(options)
     max_handle_length = max_handle_length,
   })
 
-  local machine = Machine:new(buffers.machine)
+  local machine = Machine:new(harpoon.machine)
 
   machine.ctx = {
     picker = picker,
