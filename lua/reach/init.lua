@@ -29,7 +29,6 @@ function module.setup(cfg)
 end
 
 function module.harpoon(options)
-  vim.print('reaching harpoons')
   local harpoon = require('reach.harpoon')
   local make_harpoons = require('reach.harpoon.make_harpoons')
 

@@ -68,12 +68,8 @@ function module.component(state)
     insert(parts, { f('%s ', ctx.options.modified_icon), 'ReachModifiedIndicator' })
   end
 
-  if buffer.deduped > 0 then
-    local sp = buffer.split_path
-    local dir = table.concat(sp, '/', #sp - buffer.deduped, #sp - 1)
-
-    insert(parts, { f(' · /%s ', dir), 'ReachDirectory' })
-  end
+  -- insert the full path of the file
+  insert(parts, { f(' · /%s ', buffer.name), 'ReachDirectory' })
 
   if state.grayout or (is_current and ctx.options.grayout_current and ctx.state == 'OPEN') then
     for _, part in pairs(parts) do
@@ -157,8 +153,6 @@ module.machine = {
       hooks = {
         on_enter = function(self)
           local picker = self.ctx.picker
-          vim.print('state switching')
-
           local match = read_one(picker.entries, {
             input = self.ctx.state.input,
             on_input = function(matches, exact)
@@ -175,7 +169,6 @@ module.machine = {
           })
 
           if match then
-            vim.print('match!')
             harpoon_util.open(match.data)
           end
 

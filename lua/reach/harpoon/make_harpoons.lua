@@ -1,11 +1,8 @@
 local Harpoon = require('reach.harpoon.harpoon')
 local handles = require('reach.harpoon.handles')
-local u = require('reach.harpoon.util')
 local util = require('reach.util')
 local sort = require('reach.harpoon.sort')
 local harpoon = require("harpoon")
-
-local deduped_path = u.deduped_path
 
 local function set_previous_markers(buffers, options)
   local current = vim.api.nvim_get_current_buf()
@@ -26,17 +23,8 @@ local function set_previous_markers(buffers, options)
   end
 end
 
-local function dedup(buffer)
-  local deduped = buffer.deduped + 1
-
-  if buffer.split_path[#buffer.split_path - deduped] then
-    buffer.deduped = deduped
-  end
-end
-
 return function(options)
   local buffers = {}
-  local paths = {}
   local harpoons = harpoon:list().items
   local infos = {}
   foreach(harpoons, function(t,k,v)
@@ -60,26 +48,6 @@ return function(options)
       table.insert(buffers, buffer)
       goto continue
     end
-
-    local exist
-
-    repeat
-      local path = deduped_path(buffer)
-
-      exist = paths[path]
-
-      if exist then
-        dedup(buffer)
-
-        if exist.buffer then
-          dedup(exist.buffer)
-          paths[deduped_path(exist.buffer)] = { buffer = exist.buffer }
-          exist.buffer = nil
-        end
-      else
-        paths[path] = { buffer = buffer }
-      end
-    until not exist
 
     table.insert(buffers, buffer)
 
