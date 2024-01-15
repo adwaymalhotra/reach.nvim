@@ -4,6 +4,7 @@ local helpers = require('reach.helpers')
 local read = require('reach.harpoon.read')
 local sort = require('reach.harpoon.sort')
 local util = require('reach.util')
+local hutil = require('reach.harpoon.util')
 local harpoon_util = require('reach.harpoon.util')
 
 local auto_handles = require('reach.harpoon.constant').auto_handles
@@ -69,7 +70,7 @@ function module.component(state)
   end
 
   -- insert the full path of the file
-  insert(parts, { f(' · /%s ', buffer.name), 'ReachDirectory' })
+  insert(parts, { f(' %s ', hutil.parent_path(buffer)), 'ReachDirectory' })
 
   if state.grayout or (is_current and ctx.options.grayout_current and ctx.state == 'OPEN') then
     for _, part in pairs(parts) do

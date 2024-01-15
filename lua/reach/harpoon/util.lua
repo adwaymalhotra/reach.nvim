@@ -2,6 +2,10 @@ local f = string.format
 
 local module = {}
 
+function module.parent_path(buffer)
+  return vim.fn.fnamemodify(buffer.name, ':h')
+end
+
 function module.deduped_path(buffer)
   return table.concat(buffer.split_path, '/', #buffer.split_path - buffer.deduped)
 end
