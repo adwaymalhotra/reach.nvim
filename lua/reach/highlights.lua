@@ -30,7 +30,7 @@ function module.setup()
     table.insert(highlights, { name = group, fg = fg_group })
   end
 
-  module.reset()
+  -- module.reset()
 
   vim.api.nvim_command('autocmd ColorScheme * lua require("reach.highlights").reset()')
 end
