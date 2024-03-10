@@ -35,6 +35,12 @@ function module.harpoon(options)
   options = harpoon.options.extend(options)
 
   local bufs = make_harpoons(options)
+  local count = #bufs
+
+  if count < 1 then
+    return notify('Nothing Harpooned Ahab!')
+  end
+
   local entries = vim.tbl_map(function(buffer)
     return Entry:new({
       component = harpoon.component,
