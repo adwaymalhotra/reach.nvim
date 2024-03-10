@@ -24,7 +24,7 @@ local function set_previous_markers(buffers, options)
 end
 
 return function(options)
-  local buffers = {}
+  local harpooned = {}
   local harpoons = harpoon:list().items
   local infos = {}
   foreach(harpoons, function(t,k,v)
@@ -33,52 +33,41 @@ return function(options)
   end)
 
   for _, info in pairs(infos) do
-    local buffer = Harpoon:new(info)
+    local harpoon = Harpoon:new(info)
 
     local force = util.any(function(v)
-      return v == buffer.buftype or v == buffer.filetype
+      return v == harpoon.buftype or v == harpoon.filetype
     end, options.force_delete)
 
     if force then
-      buffer.delete_command = 'bdelete! ' .. buffer.bufnr
+      harpoon.delete_command = 'bdelete! ' .. harpoon.bufnr
     end
 
-    if buffer.unnamed then
-      buffer.tail = #buffer.filetype > 0 and buffer.filetype or '[No name]'
-      table.insert(buffers, buffer)
+    if harpoon.unnamed then
+      harpoon.tail = #harpoon.filetype > 0 and harpoon.filetype or '[No name]'
+      table.insert(harpooned, harpoon)
       goto continue
     end
 
-    table.insert(buffers, buffer)
+    table.insert(harpooned, harpoon)
 
     ::continue::
   end
 
   if options.previous.enable then
-    set_previous_markers(buffers, options.previous)
+    set_previous_markers(harpooned, options.previous)
   end
 
   if options.handle == 'auto' then
-    buffers = sort.sort_priority(buffers, { sort = options.sort })
+    harpooned = sort.sort_priority(harpooned, { sort = options.sort })
     handles.assign_auto_handles(
-      buffers,
+      harpooned,
       { auto_handles = options.auto_handles, auto_exclude_handles = options.auto_exclude_handles }
     )
   else
-    if type(options.sort) == 'function' then
-      table.sort(buffers, function(b1, b2)
-        return options.sort(b1.bufnr, b2.bufnr)
-      end)
-    else
-      buffers = sort.sort_default(buffers)
-    end
-
-    if options.handle == 'bufnr' then
-      handles.assign_bufnr_handles(buffers)
-    else
-      handles.assign_dynamic_handles(buffers, options)
-    end
+    harpooned = sort.sort_default(harpooned)
+    handles.assign_dynamic_handles(harpooned, options)
   end
 
-  return buffers
+  return harpooned
 end
