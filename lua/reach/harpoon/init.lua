@@ -288,8 +288,8 @@ module.machine = {
 
           if match then
             local action_to_command = {
-              split = 'sbuffer',
-              vertsplit = 'vertical sbuffer',
+              split = 'split',
+              vertsplit = 'vsplit',
               tabsplit = 'tab sbuffer',
             }
 

@@ -15,7 +15,7 @@ function module.open(buffer)
 end
 
 function module.split_buf(buffer, command)
-  vim.api.nvim_command(f('%s %s', command, buffer.bufnr))
+  vim.api.nvim_command(f('%s %s', command, buffer.name))
 end
 
 return module
