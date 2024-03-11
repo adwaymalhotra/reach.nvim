@@ -2,7 +2,7 @@ local Harpoon = require('reach.harpoon.harpoon')
 local handles = require('reach.harpoon.handles')
 local util = require('reach.util')
 local sort = require('reach.harpoon.sort')
-local harpoon = require("harpoon")
+local harpoons = require("harpoon")
 
 local function set_previous_markers(buffers, options)
   local current = vim.api.nvim_get_current_buf()
@@ -25,7 +25,7 @@ end
 
 return function(options)
   local harpooned = {}
-  local harpoons = harpoon:list().items
+  local harpoons = harpoons:list().items
   local infos = {}
   foreach(harpoons, function(t,k,v)
     local name = v.value

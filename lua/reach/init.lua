@@ -30,32 +30,7 @@ function module.setup(cfg)
 end
 
 function module.harpoon(options)
-  local harpoon = require('reach.harpoon')
-
-  options = harpoon.options.extend(options)
-
-  local entries = harpoon_util.create_entries(options)
-
-  if not entries then
-    return vim.notify('Error creating View!')
-  end
-
-  local picker = Picker:new(entries.entries)
-
-  picker:set_ctx({
-    options = options,
-    marker_present = entries.marker_present or false,
-    max_handle_length = entries.max_handle_length or 0,
-  })
-
-  local machine = Machine:new(harpoon.machine)
-
-  machine.ctx = {
-    picker = picker,
-    options = options,
-  }
-
-  machine:init()
+  require('reach.harpoon').show(options)
 end
 
 function module.buffers(options)
