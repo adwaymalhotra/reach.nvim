@@ -39,10 +39,6 @@ return function(options)
       return v == harpoon.buftype or v == harpoon.filetype
     end, options.force_delete)
 
-    if force then
-      harpoon.delete_command = 'bdelete! ' .. harpoon.bufnr
-    end
-
     if harpoon.unnamed then
       harpoon.tail = #harpoon.filetype > 0 and harpoon.filetype or '[No name]'
       table.insert(harpooned, harpoon)

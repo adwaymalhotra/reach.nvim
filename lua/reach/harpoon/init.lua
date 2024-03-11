@@ -5,7 +5,6 @@ local read = require('reach.harpoon.read')
 local sort = require('reach.harpoon.sort')
 local util = require('reach.util')
 local hutil = require('reach.harpoon.util')
-local harpoon_util = require('reach.harpoon.util')
 
 local auto_handles = require('reach.harpoon.constant').auto_handles
 
@@ -84,16 +83,16 @@ end
 local function target_state(input, actions)
   local r = util.replace_termcodes
 
+  if input == r(actions.adding) then
+    return 'ADDING'
+  end
+
   if input == r(actions.delete) then
     return 'DELETING'
   end
 
   if vim.tbl_contains({ r(actions.split), r(actions.vertsplit), r(actions.tabsplit) }, input) then
     return 'SPLITTING'
-  end
-
-  if input == r(actions.priority) then
-    return 'SETTING_PRIORITY'
   end
 
   return 'SWITCHING'
@@ -148,30 +147,16 @@ module.machine = {
           self:transition(target_state(self.ctx.state.input, self.ctx.options.actions))
         end,
       },
-      targets = { 'SWITCHING', 'DELETING', 'SPLITTING', 'SETTING_PRIORITY', 'CLOSED' },
+      targets = { 'SWITCHING', 'ADDING', 'DELETING', 'SPLITTING', 'CLOSED' },
     },
-    SWITCHING = {
+    ADDING = {
       hooks = {
         on_enter = function(self)
           local picker = self.ctx.picker
-          local match = read_one(picker.entries, {
-            input = self.ctx.state.input,
-            on_input = function(matches, exact)
-              if exact then
-                exact:set_state({ exact = true })
-              end
+          picker:set_ctx({ state = self.current })
 
-              if self.ctx.options.grayout then
-                set_grayout(picker.entries, matches)
-              end
-
-              picker:render(not self.ctx.options.show_current and hide_current() or nil)
-            end,
-          })
-
-          if match then
-            harpoon_util.open(match.data)
-          end
+          hutil.add_current()
+          notify('Harpooned!')
 
           self:transition('CLOSED')
         end,
@@ -186,83 +171,33 @@ module.machine = {
           picker:set_ctx({ state = self.current })
           picker:render()
 
-          if self.ctx.options.handle == 'bufnr' then
-            local matches = read_many(picker.entries)
+          local match
 
-            if not matches then
-              return self:transition('OPEN')
+          repeat
+            local input = util.pgetcharstr()
+
+            if not input then
+              return self:transition('CLOSED')
             end
 
-            picker:close()
+            match = read_one(picker.entries, { input = input })
 
-            local count = 0
-            local unsaved
+            if match then
+              hutil.remove(match.data.name)
+              picker:remove('name', match.data.name)
 
-            for _, match in pairs(matches) do
-              local status = pcall(vim.api.nvim_command, match.data.delete_command)
-
-              if status then
-                count = count + 1
-                picker:remove('bufnr', match.data.bufnr)
-              elseif not unsaved then
-                unsaved = match.data
+              if #picker.entries == 0 then
+                break
               end
+
+              picker:render()
             end
 
-            vim.api.nvim_command('redraw')
-
-            notify(string.format('%s buffer%s deleted', count, count > 1 and 's' or ''), vim.log.levels.INFO)
-
-            if unsaved then
-              notify('Save your changes first\n', vim.log.levels.ERROR, true)
-              harpoon_util.open(unsaved)
-            else
-              return self:transition('OPEN')
-            end
-          else
-            local match
-
-            repeat
-              local input = util.pgetcharstr()
-
-              if not input then
-                return self:transition('CLOSED')
-              end
-
-              if input == util.replace_termcodes(self.ctx.options.actions.delete) and #picker.entries > 1 then
-                return self:transition('OPEN')
-              end
-
-              match = read_one(picker.entries, { input = input })
-
-              if match then
-                if match.data.bufnr == vim.api.nvim_get_current_buf() then
-                  picker:close()
-                end
-
-                local status = pcall(vim.api.nvim_command, match.data.delete_command)
-
-                if status then
-                  picker:remove('bufnr', match.data.bufnr)
-                else
-                  notify('Save your changes first', vim.log.levels.ERROR, true)
-                  break
-                end
-
-                if #picker.entries == 0 then
-                  break
-                end
-
-                picker:render()
-              end
-
-            until not match
-          end
-
-          self:transition('CLOSED')
+          until not match
+          self:transition('OPEN')
         end,
       },
-      targets = { 'CLOSED', 'OPEN' },
+      targets = { 'OPEN' },
     },
     SPLITTING = {
       hooks = {
@@ -297,7 +232,7 @@ module.machine = {
               return self.ctx.state.input == util.replace_termcodes(value)
             end, self.ctx.options.actions)
 
-            harpoon_util.split_buf(match.data, action_to_command[action])
+            hutil.split_buf(match.data, action_to_command[action])
           end
 
           self:transition('CLOSED')
@@ -305,70 +240,29 @@ module.machine = {
       },
       targets = { 'CLOSED' },
     },
-    SETTING_PRIORITY = {
+    SWITCHING = {
       hooks = {
         on_enter = function(self)
           local picker = self.ctx.picker
-          local options = self.ctx.options
 
-          if options.handle ~= 'auto' then
-            notify(f('Not available for options.handle == "%s"', options.handle), vim.log.levels.WARN)
-            return self:transition('CLOSED')
+          local match = read_one(picker.entries, {
+            input = self.ctx.state.input,
+            on_input = function(matches, exact)
+              if exact then
+                exact:set_state({ exact = true })
+              end
+
+              if self.ctx.options.grayout then
+                set_grayout(picker.entries, matches)
+              end
+
+              picker:render(not self.ctx.options.show_current and hide_current() or nil)
+            end,
+          })
+
+          if match then
+            hutil.open(match.data)
           end
-
-          picker:set_ctx({ state = self.current })
-          picker:render()
-
-          local priorities = cache.get('auto_priority')
-
-          local buffers = vim.tbl_map(function(entry)
-            return entry.data
-          end, picker.entries)
-
-          while true do
-            local match = read_one(picker.entries)
-
-            if not match then
-              break
-            end
-
-            match:set_state({ exact = true })
-            match.data.priority = nil
-            picker:render()
-
-            local input = util.pgetcharstr()
-
-            if not input then
-              return self:transition('CLOSED')
-            end
-
-            match:set_state({ exact = false })
-
-            priorities = vim.tbl_filter(function(item)
-              return item.name ~= match.data.name and item.priority ~= input
-            end, priorities)
-
-            if vim.tbl_contains(auto_handles, input) then
-              table.insert(priorities, { name = match.data.name, priority = input })
-            end
-
-            cache.set('auto_priority', priorities)
-
-            buffers = sort.sort_priority(buffers, { sort = options.sort })
-
-            assign_auto_handles(
-              buffers,
-              { auto_handles = options.auto_handles, auto_exclude_handles = options.auto_exclude_handles }
-            )
-
-            table.sort(picker.entries, function(a, b)
-              return util.index_of(a.data.handle, options.auto_handles)
-                < util.index_of(b.data.handle, options.auto_handles)
-            end)
-
-            picker:render()
-          end
-
           self:transition('CLOSED')
         end,
       },

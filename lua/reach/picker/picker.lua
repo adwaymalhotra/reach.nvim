@@ -52,6 +52,10 @@ function Picker:new(entries)
   return setmetatable(o, self)
 end
 
+function Picker:refresh(entries)
+  self.entries = entries
+end
+
 function Picker:before(fn)
   self._before = fn
 end
@@ -74,7 +78,7 @@ function Picker:render(condition)
   end
 
   local view, num_cols = make_view(visible)
-  local options = { force_full_reconfig = num_cols ~= self._num_cols }
+  local options = { force_full_reconfig = true } --num_cols ~= self._num_cols
 
   self._num_cols = num_cols
 

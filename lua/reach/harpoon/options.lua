@@ -29,7 +29,7 @@ local default = {
     vertsplit = '|',
     tabsplit = ']',
     delete = '<Space>',
-    priority = '=',
+    adding = '=',
   },
 }
 

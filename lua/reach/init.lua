@@ -7,6 +7,7 @@ local helpers = require('reach.helpers')
 local highlights = require('reach.highlights')
 local util = require('reach.util')
 local buffer_util = require('reach.buffers.util')
+local harpoon_util = require('reach.harpoon.util')
 
 local notify = helpers.notify
 
@@ -30,43 +31,21 @@ end
 
 function module.harpoon(options)
   local harpoon = require('reach.harpoon')
-  local make_harpoons = require('reach.harpoon.make_harpoons')
 
   options = harpoon.options.extend(options)
 
-  local bufs = make_harpoons(options)
-  local count = #bufs
+  local entries = harpoon_util.create_entries(options)
 
-  if count < 1 then
-    return notify('Nothing Harpooned Ahab!')
+  if not entries then
+    return vim.notify('Error creating View!')
   end
 
-  local entries = vim.tbl_map(function(buffer)
-    return Entry:new({
-      component = harpoon.component,
-      data = buffer,
-    })
-  end, bufs)
-
-  local picker = Picker:new(entries)
-
-  local max_handle_length = 0
-  local marker_present = false
-
-  for _, buffer in pairs(bufs) do
-    if #buffer.handle > max_handle_length then
-      max_handle_length = #buffer.handle
-    end
-
-    if buffer.previous_marker then
-      marker_present = true
-    end
-  end
+  local picker = Picker:new(entries.entries)
 
   picker:set_ctx({
     options = options,
-    marker_present = marker_present,
-    max_handle_length = max_handle_length,
+    marker_present = entries.marker_present or false,
+    max_handle_length = entries.max_handle_length or 0,
   })
 
   local machine = Machine:new(harpoon.machine)

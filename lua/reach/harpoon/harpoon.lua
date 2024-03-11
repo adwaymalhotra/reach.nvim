@@ -15,7 +15,6 @@ function Harpoon:new(info)
   o.bufnr = info.bufnr
   o.buftype = bo.buftype
   o.deduped = 0
-  o.delete_command = 'bdelete ' .. o.bufnr
   o.ext = vim.fn.fnamemodify(o.tail, ':e')
   o.filetype = bo.filetype
   o.modified = info.changed == 1
